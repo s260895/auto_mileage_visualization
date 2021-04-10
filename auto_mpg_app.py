@@ -76,22 +76,18 @@ X = df[numeric_columns]
 y = df[label]
 
 
-# @st.cache
 def get_mlp_model(x=X.values,y=y.values.ravel(),mlp_alpha=0.1,mlp_activation='relu'):
     return Pipeline([('scaler', StandardScaler()), ('pca',PCA(n_components=1)), ('regressor', MLPRegressor(hidden_layer_sizes=(100,50,10,),alpha=mlp_alpha,activation=mlp_activation_slider))]).fit(x,y)
 
-# @st.cache
 def get_svr_model(x=X.values,y=y.values.ravel(),svr_kernel='linear',svr_c=0.1):
     return Pipeline([('scaler', StandardScaler()), ('pca',PCA(n_components=1)), ('regressor', LinearSVR(C=svr_c))]).fit(x,y)
 
-# @st.cache
 def get_linear_model(x=X.values,y=y.values.ravel()):
     return Pipeline([('scaler', StandardScaler()), ('pca',PCA(n_components=1)), ('regressor', LinearRegression())]).fit(x,y)
 
-
 def get_rf_model(x=X.values,y=y.values.ravel(),rf_n_estimators=100):
     return Pipeline([('scaler', StandardScaler()), ('pca',PCA(n_components=1)), ('regressor', RandomForestRegressor(n_estimators=rf_n_estimators) )]).fit(x,y)
-# @st.cache
+
 # def get_candidate_models(x=X.values,y=y.values.ravel(),mlp_alpha=0.3,mlp_activation='relu',svr_kernel='linear',svr_c=0.1):
     
 #     # mlp_pipe = Pipeline([('scaler', StandardScaler()), ('pca',PCA(n_components=1)), ('regressor', MLPRegressor(epsilon=1e-7,hidden_layer_sizes=(100,50,10),alpha=mlp_alpha,activation=mlp_activation))]).fit(x,y)
@@ -104,7 +100,6 @@ def get_rf_model(x=X.values,y=y.values.ravel(),rf_n_estimators=100):
 #              }
 #     return regressors
 
-# @st.cache
 def regression_plot(x=X.values,y=y.values,xlabel='Engineered Feature',ylabel='Mileage, per gallon',logy=False,regressors=None):
     '''creates a scatter plot of all passed samples along with predictions of of all passed regressors'''
 
@@ -144,27 +139,19 @@ log_scaling_slider = st.sidebar.radio('Y-Axis Log Scale',[True,False],False)
 
 mlp_alpha_slider = st.sidebar.select_slider('MLP Regularization',[elem for elem in np.arange(0,0.5,0.01)],0.3)
 
-# svr_c_slider = st.sidebar.select_slider('SVR Inverse Regularization',[elem for elem in np.arange(1e-1,1e+2,10)],0.1)
 
 mlp_activation_slider = st.sidebar.select_slider('MLP Activation Function',['identity','logistic','tanh','relu'],'relu')
 
 rf_n_estimator_slider = st.sidebar.select_slider('RF No of Estimators',[100,200,500],100)
 # mlp_hidden_layer_size_text = st.text_input("MLP Hidden Layer Size", (100,))
 
-# svr_kernel_slider = st.sidebar.select_slider('SVR Kernel',['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'],'linear')
-
 # regressors = get_candidate_models(x=X.values,y=y.values.ravel(),mlp_alpha=mlp_alpha_slider,mlp_activation=mlp_activation_slider,svr_kernel=svr_kernel_slider,svr_c=svr_c_slider)
 # "The dataset contains attributes about each car and a mileage per gallon value. The plot below shows how three different models fit the given data. Play around with the sliders to see how performance and error scores of the models is affected by different combinations of model building parameters."
-# st.markdown("### Prediction Plot")
 
 if model_selection_slider == 'MLP':
     regressor = get_mlp_model(x=X.values,y=y.values.ravel(),mlp_alpha=mlp_alpha_slider,mlp_activation=mlp_activation_slider)
     fig = regression_plot(x=X.values,y=y.values,logy=log_scaling_slider,regressors=regressor)
     st.write(fig)
-# if model_selection_slider == 'SVR':
-#     regressor = get_svr_model(x=X.values,y=y.values.ravel(),svr_c=svr_c_slider)
-#     fig = regression_plot(x=X.values,y=y.values,logy=log_scaling_slider,regressors=regressor)
-#     st.write(fig)
 if model_selection_slider == 'Linear':
     regressor = get_linear_model(x=X.values,y=y.values.ravel())
     fig = regression_plot(x=X.values,y=y.values,logy=log_scaling_slider,regressors=regressor)
@@ -177,50 +164,4 @@ if model_selection_slider == 'RF':
 
 # st.plotly_chart(fig, use_container_width=True)
 
-# ###SECOND PLOT USING ALTAIR####
-# #create correlation table
-# corr_data = data.corr().stack().reset_index().rename(columns={0: 'correlation', 'level_0': 'variable', 'level_1': 'variable2'})
-# #round values
-# corr_data['correlation_label']=np.round(corr_data['correlation'],2)
-
-# ### Create correlation plot ###
-# # Define selector
-# var_sel_cor = at.selection_single(fields=['variable', 'variable2'], clear=False, 
-#                                   init={'variable': 'quality', 'variable2': 'alcohol'})
-
-# # Define correlation heatmap
-# base = at.Chart(corr_data).encode(
-#     x='variable2:O',
-#     y='variable:O'    
-# )
-# text = base.mark_text().encode(
-#     text='correlation_label',
-#     color=at.condition(
-#         at.datum.correlation > 0.5, 
-#         at.value('white'),
-#         at.value('black')
-#     )
-# )
-
-# cor_plot = base.mark_rect().encode(
-#     color=at.condition(var_sel_cor, at.value('pink'), 'correlation:Q')
-# ).add_selection(var_sel_cor)
-
-# # Define 2d binned histogram plot
-# scat_plot = at.Chart(data2d_bins).transform_filter(
-#     var_sel_cor
-# ).mark_circle().encode(
-#     at.X('value2:N', sort=at.EncodingSortField(field='raw_left_value2')), 
-#     at.Y('value:N', sort=at.EncodingSortField(field='raw_left_value', order='descending')),
-#     size='correlation:Q',
-# )
-
-
-# "Explore the correlation between the chemical properties of wine. By clicking on a correlation in the left plot, the right plot will show the binned correlation between the two variables. The right plot works similar to a scatter plot, except here it shows in which range the correlation is strongest.For instance clicking on the correlation between alcohol and quality in the left plot, will show you the correlation in the right plot and for which values the correlation is stronger."
-
-# # Combine all plots
-# st.markdown("### Correlation of Chemical Properties")
-# st.altair_chart(at.hconcat((cor_plot + text).properties(width=350, height=350),
-# scat_plot.properties(width=350, height=350)).resolve_scale(color='independent'),use_container_width=True)
-
-st.markdown("*-Sumeet Zankar, 2038666*")
+st.markdown("*-Created by Sumeet Zankar*")
