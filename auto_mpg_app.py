@@ -6,7 +6,8 @@ import altair as at
 from copy import copy
 import plotly.graph_objects as go
 # from paracoords import create_paracoords
-
+from mpl_toolkits.mplot3d import axes3d
+from matplotlib import cm
 
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
